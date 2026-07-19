@@ -397,12 +397,45 @@
     font-weight:700;font-size:12.5px;letter-spacing:0.04em;text-transform:uppercase;
     padding:11px 22px;border-radius:999px;
     transition:all .2s var(--ease-out);
+    display:inline-flex;align-items:center;gap:6px;
   }
   .pill:hover{background:var(--red-soft);color:var(--red-deep);}
   .pill.active{
     background:linear-gradient(135deg,var(--red),var(--red-deep));
     color:#fff;box-shadow:var(--shadow-red);
   }
+  /* ---------- SUBMENÚ DESPLEGABLE ADJUNTO A UNA PASTILLA (ej. Mochila) ---------- */
+  .category-pills{position:relative;}
+  .pill-wrap{position:relative;display:inline-flex;}
+  .pill-chevron{transition:transform .25s var(--ease-out);flex-shrink:0;}
+  .pill-wrap.open .pill-chevron{transform:rotate(180deg);}
+  .pill-dropdown{
+    position:absolute;top:calc(100% + 12px);left:50%;
+    transform:translate(-50%,-6px);
+    background:#fff;border:1px solid var(--line);border-radius:16px;
+    box-shadow:var(--shadow-lg);padding:7px;
+    display:flex;flex-direction:column;gap:2px;min-width:150px;
+    opacity:0;pointer-events:none;visibility:hidden;
+    transition:opacity .2s var(--ease-out), transform .2s var(--ease-out), visibility .2s;
+    z-index:30;
+  }
+  .pill-dropdown::before{
+    content:'';position:absolute;top:-6px;left:50%;
+    width:12px;height:12px;background:#fff;
+    border-left:1px solid var(--line);border-top:1px solid var(--line);
+    transform:translateX(-50%) rotate(45deg);border-radius:3px 0 0 0;
+  }
+  .pill-wrap.open .pill-dropdown{
+    opacity:1;pointer-events:auto;visibility:visible;transform:translate(-50%,0);
+  }
+  .pill-dropdown-item{
+    border:none;background:transparent;text-align:left;
+    padding:10px 16px;border-radius:10px;
+    font-size:13.5px;font-weight:600;color:var(--ink-soft);white-space:nowrap;
+    transition:background .15s ease, color .15s ease;
+  }
+  .pill-dropdown-item:hover{background:var(--red-soft);color:var(--red-deep);}
+  .pill-dropdown-item.active{background:var(--ink);color:#fff;}
   .catalog-head{
     display:flex;justify-content:space-between;align-items:flex-end;
     margin-bottom:40px;gap:24px;flex-wrap:wrap;
@@ -454,11 +487,23 @@
   }
   .stock-badge.low{background:var(--gold);color:var(--ink);}
   .stock-badge.out{background:#fff;color:var(--ink);border:1.5px solid var(--ink);}
+  .discount-badge{
+    position:absolute;top:14px;right:14px;z-index:2;
+    background:linear-gradient(135deg,var(--red),var(--red-deep));color:#fff;
+    font-size:11px;font-weight:800;padding:6px 12px;border-radius:999px;
+    letter-spacing:0.03em;font-family:'JetBrains Mono',monospace;
+    box-shadow:0 4px 12px rgba(255,0,8,0.35);
+  }
   .card-body{padding:20px 20px 22px;display:flex;flex-direction:column;gap:10px;flex:1;}
   .card-body h3{
     font-size:17px;font-family:'Work Sans',sans-serif;
     text-transform:none;font-weight:700;letter-spacing:-0.01em;
     line-height:1.3;
+  }
+  .card-price-row{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;}
+  .card-price-old{
+    font-family:'JetBrains Mono',monospace;font-weight:600;
+    font-size:13px;color:var(--gray-light);text-decoration:line-through;
   }
   .card-price{
     font-family:'JetBrains Mono',monospace;font-weight:700;
@@ -951,6 +996,18 @@ const CONFIG = {
                       Apps Script debe incluir en el JSON como "priceWholesale".
                       Si no existe, no se rompe nada: simplemente no se
                       activa ningún precio por mayor para ese producto.
+   - discountPercent: (OPCIONAL) número entre 1 y 99 — porcentaje de descuento
+                      sobre "price". Si lo pones (ej. 20), la tarjeta muestra
+                      una cinta roja "-20% OFF" arriba del modelo, el precio
+                      original tachado y el precio ya rebajado en rojo, tanto
+                      en el catálogo como en el detalle del producto. Si lo
+                      dejas vacío o en 0, el producto se ve normal, sin descuento.
+   - gender         : (OPCIONAL) texto — "Mujer", "Hombre" o "Unisex".
+                      Si al menos 2 productos de la MISMA categoría (ej. dos
+                      mochilas) tienen valores distintos de "gender", aparece
+                      automáticamente un filtro extra debajo de las pastillas
+                      de categoría para elegir Mujer / Hombre / Unisex. Si no
+                      lo agregas, todo sigue funcionando igual, sin ese filtro.
    - description    : texto descriptivo
    - colors         : array de { name, hex, stock, images: [url, ...] }
    ============================================================= */
@@ -959,6 +1016,7 @@ let PRODUCTS = [
     id: "urban-01",
     name: "Mochila Urban Pro",
     category: "Mochila",
+    gender: "Hombre",
     price: 89,
     priceWholesale: 79, // ejemplo: precio por mayor desde 2 unidades
     description: "Mochila urbana antirrobo con compartimento acolchado para laptop de 15.6\", puerto USB y tela impermeable.",
@@ -984,7 +1042,9 @@ let PRODUCTS = [
     id: "escolar-02",
     name: "Mochila Escolar Max",
     category: "Mochila",
+    gender: "Unisex",
     price: 69,
+    discountPercent: 20, // ejemplo: 20% de descuento sobre el precio normal
     description: "Mochila escolar de gran capacidad, doble compartimento, tirantes ergonómicos acolchados y bolsillo lateral para botella.",
     colors: [
       { name: "Azul", hex: "#1D4ED8", stock: 9,
@@ -1006,6 +1066,7 @@ let PRODUCTS = [
     id: "viaje-03",
     name: "Mochila Viajera 40L",
     category: "Mochila",
+    gender: "Unisex",
     price: 129,
     description: "Mochila de viaje 40L tipo carry-on, estructura reforzada, ideal para vuelos low cost y escapadas de fin de semana.",
     colors: [
@@ -1017,6 +1078,29 @@ let PRODUCTS = [
       { name: "Negro", hex: "#181614", stock: 5,
         images: [
           "https://placehold.co/640x640/181614/ffffff?font=roboto&text=Viajera+40L%0ANegro+1"
+        ]}
+    ]
+  },
+  {
+    id: "trendy-04",
+    name: "Mochila Trendy Chic",
+    category: "Mochila",
+    gender: "Mujer",
+    price: 79,
+    description: "Mochila femenina con diseño acolchado, bolsillo frontal decorativo y compartimento interno para laptop de 14\".",
+    colors: [
+      { name: "Rosado Palo", hex: "#E8B4BC", stock: 5,
+        images: [
+          "https://placehold.co/640x640/E8B4BC/181614?font=roboto&text=Trendy+Chic%0ARosado+1",
+          "https://placehold.co/640x640/D89AA3/181614?font=roboto&text=Trendy+Chic%0ARosado+2"
+        ]},
+      { name: "Beige", hex: "#D8C9AE", stock: 4,
+        images: [
+          "https://placehold.co/640x640/D8C9AE/181614?font=roboto&text=Trendy+Chic%0ABeige+1"
+        ]},
+      { name: "Negro", hex: "#181614", stock: 6,
+        images: [
+          "https://placehold.co/640x640/181614/ffffff?font=roboto&text=Trendy+Chic%0ANegro+1"
         ]}
     ]
   },
@@ -1067,6 +1151,57 @@ let currentImgIdx   = 0;
 // Solo se incluyen en el mensaje los colores con cantidad > 0
 let colorQtys       = {};
 let activeCategory  = "Todos";
+let activeGender    = "Todos";
+
+/* =============================================================
+   DETECCIÓN DE DISPOSITIVO (celular / tablet / PC)
+   -------------------------------------------------------------
+   Le pone una clase al <body> según el ancho de pantalla:
+     device-mobile   → menor a 640px  (celulares)
+     device-tablet   → 640px a 1023px (tablets)
+     device-desktop  → 1024px o más   (computadoras)
+   También agrega device-touch / device-no-touch según si el
+   dispositivo tiene pantalla táctil (útil porque a veces una
+   laptop con pantalla táctil no es lo mismo que un celular).
+
+   Se ejecuta al cargar la página y cada vez que cambia el
+   tamaño de la ventana o gira la pantalla, así que si alguien
+   pasa de vertical a horizontal (o achica la ventana en PC),
+   las clases se actualizan solas sin recargar.
+
+   CÓMO USARLO EN CSS (ejemplos, agrega los tuyos donde quieras):
+     body.device-mobile  .grid{ grid-template-columns:1fr; }
+     body.device-tablet  .grid{ grid-template-columns:1fr 1fr; }
+     body.device-desktop .grid{ grid-template-columns:repeat(3,1fr); }
+
+     // Para CAMBIAR EL ORDEN de elementos (requiere que el
+     // contenedor padre sea display:flex o display:grid):
+     body.device-mobile .nosotros-grid img{ order:-1; } // la foto va primero en celular
+   ============================================================= */
+function detectarDispositivo() {
+  const ancho = window.innerWidth;
+  const esTactil = ("ontouchstart" in window) || navigator.maxTouchPoints > 0;
+
+  let tipo;
+  if (ancho < 640) tipo = "mobile";
+  else if (ancho < 1024) tipo = "tablet";
+  else tipo = "desktop";
+
+  document.body.classList.remove("device-mobile", "device-tablet", "device-desktop");
+  document.body.classList.add("device-" + tipo);
+  document.body.classList.toggle("device-touch", esTactil);
+  document.body.classList.toggle("device-no-touch", !esTactil);
+
+  return tipo;
+}
+
+detectarDispositivo();
+
+let _resizeTimer;
+window.addEventListener("resize", () => {
+  clearTimeout(_resizeTimer);
+  _resizeTimer = setTimeout(detectarDispositivo, 150); // espera a que termine de arrastrar/rotar
+});
 
 /* =============================================================
    UTILIDADES
@@ -1089,6 +1224,20 @@ function normText(t) {
   return String(t || "").trim().toLowerCase();
 }
 
+/* ── Calcula si un producto tiene descuento activo y su precio final ──
+   Se usa tanto en las tarjetas del catálogo como en el detalle, para que
+   el precio "actual" del producto (el que se usa para todo lo demás,
+   incluyendo el precio por mayor) sea siempre el ya rebajado. ── */
+function getPrecioConDescuento(p) {
+  const pct = Number(p.discountPercent) || 0;
+  const tieneDescuento = pct > 0 && pct < 100;
+  const precioOriginal = p.price;
+  const precioFinal = tieneDescuento
+    ? Math.round(p.price * (1 - pct / 100) * 100) / 100
+    : p.price;
+  return { tieneDescuento, pct, precioOriginal, precioFinal };
+}
+
 /* =============================================================
    LINKS GENERALES DE WHATSAPP
    ============================================================= */
@@ -1099,22 +1248,105 @@ function setGeneralWaLinks() {
 }
 
 /* =============================================================
-   PASTILLAS DE CATEGORÍA
+   PASTILLAS DE CATEGORÍA (con submenú desplegable para las que
+   tienen más de un "gender" registrado, ej. Mochila → Mujer/Hombre)
+   -------------------------------------------------------------
+   openCategoryDropdown guarda qué categoría tiene su submenú
+   abierto en este momento (o null si ninguna). Se guarda aparte
+   de activeCategory porque el desplegable se puede abrir/cerrar
+   sin necesariamente cambiar qué está filtrado.
    ============================================================= */
+let openCategoryDropdown = null;
+
 function renderPills() {
   const cont = document.getElementById("categoryPills");
   const cats = ["Todos", ...new Set(PRODUCTS.map(p => p.category).filter(Boolean))];
-  cont.innerHTML = cats.map(cat =>
-    `<button class="pill${normText(cat) === normText(activeCategory) ? " active" : ""}" data-cat="${cat}">${cat}</button>`
-  ).join("");
-  cont.querySelectorAll(".pill").forEach(btn => {
+
+  cont.innerHTML = cats.map(cat => {
+    const catActiva = normText(cat) === normText(activeCategory);
+
+    // Géneros distintos dentro de esta categoría (si hay 2+, se arma el submenú)
+    const generos = cat === "Todos" ? [] : [...new Set(
+      PRODUCTS
+        .filter(p => normText(p.category) === normText(cat))
+        .map(p => (p.gender || "").trim())
+        .filter(Boolean)
+    )];
+    const tieneSubmenu = generos.length >= 2;
+
+    if (!tieneSubmenu) {
+      return `<button class="pill${catActiva ? " active" : ""}" data-cat="${cat}">${cat}</button>`;
+    }
+
+    const abierto = normText(openCategoryDropdown || "") === normText(cat);
+    const opciones = ["Todos", ...generos];
+
+    return `
+      <div class="pill-wrap${abierto ? " open" : ""}" data-cat="${cat}">
+        <button class="pill${catActiva ? " active" : ""}" data-cat="${cat}" data-hassub="1">
+          ${cat}
+          <svg class="pill-chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div class="pill-dropdown">
+          ${opciones.map(g => `
+            <button class="pill-dropdown-item${catActiva && normText(activeGender) === normText(g) ? " active" : ""}"
+                    data-cat="${cat}" data-gender="${g}">
+              ${g === "Todos" ? "Todos" : g}
+            </button>`).join("")}
+        </div>
+      </div>`;
+  }).join("");
+
+  /* Pastillas SIN submenú (Todos, Cartera, Canguro…): filtran directo */
+  cont.querySelectorAll(".pill:not([data-hassub])").forEach(btn => {
     btn.addEventListener("click", () => {
       activeCategory = btn.dataset.cat;
+      activeGender = "Todos";
+      openCategoryDropdown = null;
+      renderPills();
+      renderGrid();
+    });
+  });
+
+  /* Pastillas CON submenú (ej. Mochila): el clic despliega/cierra las opciones
+     y de una vez filtra por toda la categoría mientras el cliente elige */
+  cont.querySelectorAll(".pill[data-hassub]").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const cat = btn.dataset.cat;
+      const cambiandoCategoria = normText(activeCategory) !== normText(cat);
+      const estabaAbierta = normText(openCategoryDropdown || "") === normText(cat);
+
+      activeCategory = cat;
+      if (cambiandoCategoria) activeGender = "Todos";
+      // Si ya estaba en esta categoría y el submenú abierto, un segundo clic lo cierra
+      openCategoryDropdown = (cambiandoCategoria || !estabaAbierta) ? cat : null;
+
+      renderPills();
+      renderGrid();
+    });
+  });
+
+  /* Opciones dentro del submenú (Mujer / Hombre / Unisex / Todos) */
+  cont.querySelectorAll(".pill-dropdown-item").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      activeCategory = btn.dataset.cat;
+      activeGender = btn.dataset.gender;
+      openCategoryDropdown = null;
       renderPills();
       renderGrid();
     });
   });
 }
+
+/* Cerrar cualquier submenú abierto si el cliente toca fuera de él */
+document.addEventListener("click", () => {
+  if (openCategoryDropdown !== null) {
+    openCategoryDropdown = null;
+    renderPills();
+  }
+});
 
 /* =============================================================
    GRID DE PRODUCTOS
@@ -1122,9 +1354,13 @@ function renderPills() {
 function renderGrid() {
   const grid = document.getElementById("catalogGrid");
   grid.innerHTML = "";
-  const visible = normText(activeCategory) === "todos"
+  let visible = normText(activeCategory) === "todos"
     ? PRODUCTS
     : PRODUCTS.filter(p => normText(p.category) === normText(activeCategory));
+
+  if (normText(activeGender) !== "todos") {
+    visible = visible.filter(p => normText(p.gender) === normText(activeGender));
+  }
 
   if (!visible.length) {
     grid.innerHTML = `<p style="color:var(--gray);grid-column:1/-1;">Aún no hay productos en esta categoría.</p>`;
@@ -1134,17 +1370,22 @@ function renderGrid() {
   visible.forEach(product => {
     const total = totalStock(product);
     const tag   = stockTag(total);
+    const desc  = getPrecioConDescuento(product);
     const first = product.colors.find(c => c.stock > 0) || product.colors[0];
     const card  = document.createElement("div");
     card.className = "card";
     card.innerHTML = `
       <div class="card-img">
         <span class="stock-badge ${tag.cls}">${tag.label}</span>
+        ${desc.tieneDescuento ? `<span class="discount-badge">-${desc.pct}% OFF</span>` : ""}
         <img src="${first.images[0]}" alt="${product.name} — ${first.name}" loading="lazy">
       </div>
       <div class="card-body">
         <h3>${product.name}</h3>
-        <div class="card-price">S/ ${product.price.toFixed(2)}</div>
+        <div class="card-price-row">
+          ${desc.tieneDescuento ? `<span class="card-price-old">S/ ${desc.precioOriginal.toFixed(2)}</span>` : ""}
+          <div class="card-price">S/ ${desc.precioFinal.toFixed(2)}</div>
+        </div>
         <div class="swatch-row">
           ${product.colors.map(c =>
             `<span class="swatch-dot" style="background:${c.hex}" title="${c.name}"></span>`
@@ -1189,17 +1430,25 @@ function renderDetail() {
   });
   const hayPedido = totalUnidades > 0;
 
+  /* ── DESCUENTO ────────────────────────────────────────────────────────
+     Si el producto trae discountPercent, el "precio base" que se usa en
+     todo el detalle (y como referencia para el precio por mayor) pasa a
+     ser el precio ya rebajado. p.price original solo se muestra tachado. */
+  const desc = getPrecioConDescuento(p);
+  const precioBase = desc.tieneDescuento ? desc.precioFinal : p.price;
+
   /* ── PRECIO POR MAYOR ───────────────────────────────────────────────
      Si el producto trae priceWholesale (desde tu tabla de Sheets) y el
      cliente lleva 2+ unidades del mismo modelo (sin importar el color),
-     se usa ese precio por unidad en vez del precio normal. Si no hay
-     priceWholesale configurado, todo sigue funcionando como antes. ── */
+     se usa ese precio por unidad en vez del precio normal (o ya rebajado
+     por descuento, si aplica). Si no hay priceWholesale configurado,
+     todo sigue funcionando como antes. ── */
   const UNIDADES_MIN_MAYOR = 2;
-  const tieneMayorista = typeof p.priceWholesale === "number" && p.priceWholesale > 0 && p.priceWholesale < p.price;
+  const tieneMayorista = typeof p.priceWholesale === "number" && p.priceWholesale > 0 && p.priceWholesale < precioBase;
   const aplicaMayorista = tieneMayorista && totalUnidades >= UNIDADES_MIN_MAYOR;
-  const precioUnitario = aplicaMayorista ? p.priceWholesale : p.price;
+  const precioUnitario = aplicaMayorista ? p.priceWholesale : precioBase;
   const totalPrecio = totalUnidades * precioUnitario;
-  const totalPrecioNormal = totalUnidades * p.price; // para mostrar el ahorro
+  const totalPrecioNormal = totalUnidades * precioBase; // para mostrar el ahorro
   const ahorroTotal = totalPrecioNormal - totalPrecio;
 
   /* ── Aviso de precio por mayor (justo donde digita la cantidad) ── */
@@ -1211,7 +1460,7 @@ function renderDetail() {
              background:var(--gold-soft);border:1.5px solid var(--gold);font-size:13.5px;font-weight:600;color:var(--ink-soft);
              display:flex;align-items:center;gap:8px;">
           🎉 <span>¡Precio por mayor activado! Pagas <strong>S/ ${precioUnitario.toFixed(2)}</strong> c/u
-          (antes S/ ${p.price.toFixed(2)}) por llevar ${totalUnidades} unidades de este modelo.</span>
+          (antes S/ ${precioBase.toFixed(2)}) por llevar ${totalUnidades} unidades de este modelo.</span>
         </div>`;
     } else {
       const faltan = UNIDADES_MIN_MAYOR - totalUnidades;
@@ -1220,7 +1469,7 @@ function renderDetail() {
              background:var(--paper-warm);border:1.5px solid var(--line-strong);font-size:13.5px;font-weight:600;color:var(--gray);
              display:flex;align-items:center;gap:8px;">
           💡 <span>Lleva ${UNIDADES_MIN_MAYOR}+ unidades de este modelo (en cualquier color${totalUnidades > 0 ? `, te falta${faltan===1?"":"n"} ${faltan}` : ""}) y paga
-          <strong>S/ ${p.priceWholesale.toFixed(2)}</strong> c/u en vez de S/ ${p.price.toFixed(2)}.</span>
+          <strong>S/ ${p.priceWholesale.toFixed(2)}</strong> c/u en vez de S/ ${precioBase.toFixed(2)}.</span>
         </div>`;
     }
   }
@@ -1308,9 +1557,13 @@ function renderDetail() {
     <div class="detail-info">
       <div>
         <span class="tag" style="margin-bottom:4px;">${p.category}</span>
+        ${desc.tieneDescuento ? `<span class="discount-badge" style="position:static;display:inline-block;margin:0 0 4px 8px;vertical-align:middle;">-${desc.pct}% OFF</span>` : ""}
         <h2>${p.name}</h2>
       </div>
-      <div class="detail-price">S/ ${p.price.toFixed(2)} <span style="font-size:14px;font-weight:400;font-family:'Work Sans',sans-serif;color:var(--gray);">c/u</span></div>
+      <div class="detail-price">
+        ${desc.tieneDescuento ? `<span style="text-decoration:line-through;color:var(--gray-light);font-size:16px;font-weight:500;margin-right:8px;">S/ ${desc.precioOriginal.toFixed(2)}</span>` : ""}
+        S/ ${precioBase.toFixed(2)} <span style="font-size:14px;font-weight:400;font-family:'Work Sans',sans-serif;color:var(--gray);">c/u</span>
+      </div>
       <p class="detail-desc">${p.description}</p>
 
       <!-- TABLA DE COLORES CON CANTIDAD INDIVIDUAL -->
@@ -1393,18 +1646,19 @@ function renderDetail() {
         .map(x => `   • ${x.c.name}: ${x.q} unidad${x.q > 1 ? "es" : ""}`)
         .join("\n");
 
-      // Recalcular total con precio por mayor si aplica (mismo criterio que renderDetail)
+      // Recalcular total con descuento y/o precio por mayor si aplica (mismo criterio que renderDetail)
       let totalUnidadesWa = 0;
       p.colors.forEach((c, i) => { totalUnidadesWa += colorQtys[i] || 0; });
-      const tieneMayoristaWa  = typeof p.priceWholesale === "number" && p.priceWholesale > 0 && p.priceWholesale < p.price;
+      const tieneMayoristaWa  = typeof p.priceWholesale === "number" && p.priceWholesale > 0 && p.priceWholesale < precioBase;
       const aplicaMayoristaWa = tieneMayoristaWa && totalUnidadesWa >= 2;
-      const precioUnitarioWa  = aplicaMayoristaWa ? p.priceWholesale : p.price;
+      const precioUnitarioWa  = aplicaMayoristaWa ? p.priceWholesale : precioBase;
       const totalFinal = totalUnidadesWa * precioUnitarioWa;
 
       const mensaje =
         `Hola! Quiero pedir lo siguiente de DEHSE:\n\n` +
         `📦 *${p.name}*\n` +
         `${lineasColor}\n\n` +
+        (desc.tieneDescuento ? `🏷️ Descuento aplicado: -${desc.pct}% (antes S/ ${desc.precioOriginal.toFixed(2)} c/u)\n` : "") +
         (aplicaMayoristaWa ? `🏷️ Precio por mayor aplicado: S/ ${precioUnitarioWa.toFixed(2)} c/u\n` : "") +
         `💰 Total referencial: S/ ${totalFinal.toFixed(2)}\n\n` +
         `¿Me ayudan a coordinar la entrega?`;
@@ -1440,6 +1694,8 @@ async function cargarDesdeSheets() {
     // Las pills se construyen SIEMPRE desde PRODUCTS (sea de Sheet o demo),
     // así que las categorías reflejan exactamente lo que hay en la hoja.
     activeCategory = "Todos";
+    activeGender = "Todos";
+    openCategoryDropdown = null;
     renderPills();
     renderGrid();
   }
