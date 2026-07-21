@@ -1677,28 +1677,72 @@ function renderDetail() {
    - Si appsScriptUrl está vacío: usa los datos de demo de arriba.
    Las categorías siempre vienen del dato real, nunca están hardcodeadas.
    ============================================================= */
-async function cargarDesdeSheets() {
-  if (!CONFIG.appsScriptUrl) return; // sin URL → datos de demo
-  mostrarCargando(true);
+/* Pide el JSON al Apps Script una sola vez.
+   Google Apps Script a veces responde lento o con un redirect interno
+   en la primera llamada ("cold start"), por eso agregamos:
+   - cache:'no-store' y redirect:'follow' explícitos
+   - un timeout con AbortController (para no colgarse si no responde)
+*/
+async function pedirProductos(intentoTimeoutMs = 9000) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), intentoTimeoutMs);
   try {
-    const res  = await fetch(`${CONFIG.appsScriptUrl}?accion=productos`);
+    const res = await fetch(`${CONFIG.appsScriptUrl}?accion=productos`, {
+      cache: "no-store",
+      redirect: "follow",
+      signal: ctrl.signal
+    });
     if (!res.ok) throw new Error("HTTP " + res.status);
     const data = await res.json();
-    if (Array.isArray(data) && data.length) {
-      PRODUCTS = data;
-    }
-  } catch (err) {
-    console.warn("Sheet no disponible, usando datos locales:", err);
+    if (!Array.isArray(data) || !data.length) throw new Error("Respuesta vacía o inválida");
+    return data;
   } finally {
-    mostrarCargando(false);
-    // Las pills se construyen SIEMPRE desde PRODUCTS (sea de Sheet o demo),
-    // así que las categorías reflejan exactamente lo que hay en la hoja.
-    activeCategory = "Todos";
-    activeGender = "Todos";
-    openCategoryDropdown = null;
-    renderPills();
-    renderGrid();
+    clearTimeout(timer);
   }
+}
+
+/* Carga con reintentos automáticos: si el primer intento falla
+   (típico "cold start" de Apps Script), reintenta un par de veces
+   con una espera creciente antes de rendirse y usar datos demo.
+   Así el usuario ya NO necesita refrescar manualmente. */
+async function cargarDesdeSheets(maxIntentos = 3) {
+  if (!CONFIG.appsScriptUrl) return; // sin URL → datos de demo
+  mostrarCargando(true);
+
+  let ultimoError = null;
+  for (let intento = 1; intento <= maxIntentos; intento++) {
+    try {
+      const data = await pedirProductos();
+      PRODUCTS = data;
+      ultimoError = null;
+      break; // éxito, dejamos de reintentar
+    } catch (err) {
+      ultimoError = err;
+      console.warn(`Intento ${intento}/${maxIntentos} falló:`, err);
+      if (intento < maxIntentos) {
+        // Espera creciente: 800ms, 1600ms... da tiempo al script a "despertar"
+        await new Promise(r => setTimeout(r, 800 * intento));
+      }
+    }
+  }
+
+  mostrarCargando(false);
+
+  if (ultimoError) {
+    // Todos los intentos fallaron: mostramos datos demo + botón para reintentar
+    console.warn("No se pudo cargar el catálogo real, usando datos locales:", ultimoError);
+    mostrarErrorCarga(true);
+  } else {
+    mostrarErrorCarga(false);
+  }
+
+  // Las pills se construyen SIEMPRE desde PRODUCTS (sea de Sheet o demo),
+  // así que las categorías reflejan exactamente lo que hay en la hoja.
+  activeCategory = "Todos";
+  activeGender = "Todos";
+  openCategoryDropdown = null;
+  renderPills();
+  renderGrid();
 }
 
 /* Indicador de carga mientras pide el JSON al Apps Script */
@@ -1719,6 +1763,35 @@ function mostrarCargando(activo) {
                     M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
          </svg>Cargando catálogo…`;
       document.getElementById("catalogGrid").appendChild(el);
+    }
+  } else {
+    if (el) el.remove();
+  }
+}
+
+/* Banner de error + botón "Reintentar" cuando los 3 intentos fallaron.
+   El usuario ya no necesita refrescar la página manualmente: solo toca
+   el botón (o esperamos automáticamente a que responda el script). */
+function mostrarErrorCarga(activo) {
+  let el = document.getElementById("errorCargaBanner");
+  if (activo) {
+    if (!el) {
+      el = document.createElement("div");
+      el.id = "errorCargaBanner";
+      el.style.cssText =
+        "grid-column:1/-1;text-align:center;padding:20px 16px;margin-bottom:8px;" +
+        "background:var(--red-soft);border:1px solid var(--red);border-radius:var(--radius-sm);" +
+        "color:var(--red-deep);font-size:14px;font-weight:600;";
+      el.innerHTML =
+        `No pudimos conectar con el catálogo en línea, estás viendo modelos de muestra.
+         <button id="btnReintentarCarga" style="margin-left:10px;background:var(--red);color:#fff;
+           border:none;border-radius:999px;padding:8px 16px;font-weight:700;font-size:13px;">
+           Reintentar
+         </button>`;
+      document.getElementById("catalogGrid").prepend(el);
+      document.getElementById("btnReintentarCarga").addEventListener("click", () => {
+        cargarDesdeSheets();
+      });
     }
   } else {
     if (el) el.remove();
