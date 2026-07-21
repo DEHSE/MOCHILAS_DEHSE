@@ -1673,6 +1673,45 @@ function renderDetail() {
 }
 
 /* =============================================================
+   FIX FOTOS DE GOOGLE DRIVE
+   Un link de "compartir" de Drive (drive.google.com/file/d/ID/view
+   o drive.google.com/open?id=ID) abre una página con visor, NO la
+   imagen en sí — por eso no se ve como foto de producto.
+   Esta función detecta esos links y los convierte automáticamente
+   al formato que Google sí sirve como imagen directa, para que el
+   usuario pueda seguir pegando el link de "compartir" de siempre.
+   IMPORTANTE: el archivo en Drive debe estar compartido como
+   "Cualquier persona con el enlace" para que esto funcione.
+   ============================================================= */
+function normalizarImagenDrive(url) {
+  if (!url || typeof url !== "string") return url;
+  const patrones = [
+    /drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/,   // .../file/d/ID/view
+    /drive\.google\.com\/open\?id=([a-zA-Z0-9_-]+)/,   // .../open?id=ID
+    /drive\.google\.com\/uc\?id=([a-zA-Z0-9_-]+)/,     // .../uc?id=ID
+    /[?&]id=([a-zA-Z0-9_-]+)/                          // cualquier otro ...?id=ID
+  ];
+  for (const patron of patrones) {
+    const match = url.match(patron);
+    if (match && match[1]) {
+      return `https://lh3.googleusercontent.com/d/${match[1]}=w1000`;
+    }
+  }
+  return url; // no es un link de Drive: se deja tal cual
+}
+
+/* Aplica la normalización a todas las fotos de todos los productos */
+function normalizarFotosProductos(productos) {
+  return productos.map(p => ({
+    ...p,
+    colors: (p.colors || []).map(c => ({
+      ...c,
+      images: (c.images || []).map(normalizarImagenDrive)
+    }))
+  }));
+}
+
+/* =============================================================
    CARGAR INVENTARIO DESDE GOOGLE SHEETS
    - Si appsScriptUrl está configurado: carga desde tu Sheet y las
      pastillas de categoría se generan con lo que tengas en la columna
@@ -1716,7 +1755,7 @@ async function cargarDesdeSheets(maxIntentos = 3) {
   for (let intento = 1; intento <= maxIntentos; intento++) {
     try {
       const data = await pedirProductos();
-      PRODUCTS = data;
+      PRODUCTS = normalizarFotosProductos(data);
       ultimoError = null;
       break; // éxito, dejamos de reintentar
     } catch (err) {
