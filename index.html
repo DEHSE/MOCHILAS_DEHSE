@@ -1896,6 +1896,17 @@ if ("IntersectionObserver" in window) {
 } else {
   catalogSec.classList.add("visible");
 }
+
+/* FIX: en navegadores internos (TikTok, Instagram) el IntersectionObserver
+   a veces no dispara por cómo calculan el viewport, y el catálogo se queda
+   invisible (opacity:0) para siempre aunque los productos sí cargaron.
+   Este respaldo lo muestra de todas formas después de un momento, sin
+   depender de que el usuario haga scroll ni de que el observer funcione. */
+setTimeout(() => {
+  if (catalogSec && !catalogSec.classList.contains("visible")) {
+    catalogSec.classList.add("visible");
+  }
+}, 1200);
 </script>
 </body>
 </html>
