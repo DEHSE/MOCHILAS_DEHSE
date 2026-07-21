@@ -852,15 +852,25 @@
             "intent://" + withoutScheme +
             "#Intent;scheme=https;package=com.android.chrome;end";
         } else {
-          // iPhone: copiamos el link y explicamos cómo abrirlo afuera
+          // iPhone: copiamos el link por si acaso
           if (navigator.clipboard) {
             navigator.clipboard.writeText(currentUrl).catch(function(){});
           }
-          alert(
-            "Toca los 3 puntitos (⋯) o el ícono de compartir arriba a la derecha,\n" +
-            "y elige 'Abrir en Safari' o 'Abrir en el navegador'.\n\n" +
-            "El link ya quedó copiado por si lo necesitas pegar."
-          );
+          // 1er intento: truco "x-safari-https://" que a veces SÍ logra
+          // sacar de TikTok/Instagram directo a Safari. No es garantizado.
+          var safariUrl = currentUrl.replace(/^https:\/\//, "x-safari-https://");
+          window.location.href = safariUrl;
+
+          // Si en 900ms seguimos aquí (el truco no funcionó), mostramos
+          // las instrucciones manuales como respaldo.
+          setTimeout(function () {
+            if (document.hidden) return; // si sí se fue, no mostramos nada
+            alert(
+              "Toca los 3 puntitos (⋯) o el ícono de compartir arriba a la derecha,\n" +
+              "y elige 'Abrir en Safari' o 'Abrir en el navegador'.\n\n" +
+              "El link ya quedó copiado por si lo necesitas pegar."
+            );
+          }, 900);
         }
       });
     });
