@@ -1056,9 +1056,10 @@ const CONFIG = {
   // Mensaje del botón flotante y el footer (cuando no hay un producto elegido)
   whatsappMsgGeneral: "Hola, quisiera consultar sobre sus mochilas 🎒",
 
-  // Si conectas Google Apps Script para cargar el inventario desde Sheets,
-  // pega aquí la URL del script. Si lo dejas vacío usa los datos de demo.
-  appsScriptUrl: "https://script.google.com/macros/s/AKfycbz9kzoIDx09cil4UynEjI0YTOtD_uA2mt1DBC4eNXZEdwLtANbk6w_skN77GofpazTI/exec"
+  // Conexión a Supabase (reemplaza a Google Apps Script/Sheets).
+  // Si dejas supabaseUrl vacío, se usan los datos de demo de abajo.
+  supabaseUrl: "https://kavzozilqaqyykfzwrch.supabase.co",
+  supabaseAnonKey: "sb_publishable_CI0sPs1OwWRtOHBr0i9yCg_kOW_yX9g"
 };
 
 /* =============================================================
@@ -1991,16 +1992,16 @@ function normalizarFotosProductos(productos) {
 }
 
 /* =============================================================
-   CARGAR INVENTARIO DESDE GOOGLE SHEETS
-   - Si appsScriptUrl está configurado: carga desde tu Sheet y las
-     pastillas de categoría se generan con lo que tengas en la columna
-     CATEGORIA (MOCHILA, CARTERA, CANGURO, lo que agregues).
-   - Si appsScriptUrl está vacío: usa los datos de demo de arriba.
+   CARGAR INVENTARIO DESDE SUPABASE
+   - Si supabaseUrl está configurado: carga desde la vista catalog_json
+     y las pastillas de categoría se generan con lo que haya en la
+     tabla categories (MOCHILA, CARTERA, CANGURO, lo que agregues).
+   - Si supabaseUrl está vacío: usa los datos de demo de arriba.
    Las categorías siempre vienen del dato real, nunca están hardcodeadas.
    ============================================================= */
-/* Pide el JSON al Apps Script una sola vez.
-   Google Apps Script a veces responde lento o con un redirect interno
-   en la primera llamada ("cold start"), por eso agregamos:
+/* Pide el JSON a Supabase una sola vez.
+   Mantenemos reintentos y timeout por seguridad, aunque Supabase
+   normalmente responde mucho más rápido que Apps Script:
    - cache:'no-store' y redirect:'follow' explícitos
    - un timeout con AbortController (para no colgarse si no responde)
 */
@@ -2008,10 +2009,14 @@ async function pedirProductos(intentoTimeoutMs = 9000) {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), intentoTimeoutMs);
   try {
-    const res = await fetch(`${CONFIG.appsScriptUrl}?accion=productos`, {
+    const res = await fetch(`${CONFIG.supabaseUrl}/rest/v1/catalog_json?select=*`, {
       cache: "no-store",
       redirect: "follow",
-      signal: ctrl.signal
+      signal: ctrl.signal,
+      headers: {
+        apikey: CONFIG.supabaseAnonKey,
+        Authorization: `Bearer ${CONFIG.supabaseAnonKey}`
+      }
     });
     if (!res.ok) throw new Error("HTTP " + res.status);
     const data = await res.json();
@@ -2027,7 +2032,7 @@ async function pedirProductos(intentoTimeoutMs = 9000) {
    con una espera creciente antes de rendirse y usar datos demo.
    Así el usuario ya NO necesita refrescar manualmente. */
 async function cargarDesdeSheets(maxIntentos = 3) {
-  if (!CONFIG.appsScriptUrl) return; // sin URL → datos de demo
+  if (!CONFIG.supabaseUrl) return; // sin URL → datos de demo
   mostrarCargando(true);
 
   let ultimoError = null;
@@ -2139,8 +2144,8 @@ document.getElementById("detailOverlay").addEventListener("click", e => {
 /* Links generales de WhatsApp */
 setGeneralWaLinks();
 
-/* Carga desde Sheets (si hay URL) o usa demo y renderiza */
-if (CONFIG.appsScriptUrl) {
+/* Carga desde Supabase (si hay URL) o usa demo y renderiza */
+if (CONFIG.supabaseUrl) {
   cargarDesdeSheets();
 } else {
   renderPills();
