@@ -1055,7 +1055,7 @@ const CONFIG = {
 /* =============================================================
    CARRUSEL DE PORTADA (banners)
    Las fotos se administran 100% desde el panel (admin.html) y viven
-   en la tabla "banners" de Supabase — este bloque solo las lee y las
+   en la tabla "portada" de Supabase — este bloque solo las lee y las
    muestra. Si no hay ninguna foto activa, la sección se oculta sola
    (queda con la clase "is-empty" que ya trae por defecto en el HTML).
    ============================================================= */
@@ -1074,7 +1074,7 @@ const CONFIG = {
 
   async function pedirBanners() {
     const res = await fetch(
-      `${CONFIG.supabaseUrl}/rest/v1/banners?select=id,image_url,link_url&is_active=eq.true&order=sort_order.asc`,
+      `${CONFIG.supabaseUrl}/rest/v1/portada?select=id,image_url,link_url&is_active=eq.true&order=sort_order.asc`,
       {
         cache: "no-store",
         headers: {
