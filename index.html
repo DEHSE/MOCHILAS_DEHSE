@@ -309,37 +309,6 @@
     .banner-track{ transition:none; }
   }
 
-  /* ---------- MENSAJE SOBRE EL CARRUSEL DE PORTADA ----------
-     Titular + CTA fijos sobre las fotos administrables, para que el
-     mensaje de marca no dependa 100% de la imagen. No interfiere con
-     los clics del carrusel (flechas, puntos, swipe, link de la foto):
-     solo el botón es clicable, el resto del overlay deja pasar el clic. */
-  .banner-overlay{
-    position:absolute;inset:0;z-index:1;pointer-events:none;
-    display:flex;align-items:flex-end;
-    background:linear-gradient(0deg,rgba(10,9,8,0.62) 0%,rgba(10,9,8,0.28) 42%,rgba(10,9,8,0) 68%);
-  }
-  .banner-overlay-inner{
-    width:100%;padding:0 28px clamp(48px,7vw,72px);
-    max-width:1200px;margin:0 auto;
-  }
-  .banner-overlay h1{
-    font-family:'Anton',sans-serif;
-    font-weight:400;text-transform:uppercase;letter-spacing:0.01em;
-    color:#fff;line-height:1.08;
-    font-size:clamp(22px,4vw,44px);
-    max-width:17ch;
-    margin:0 0 20px;
-    text-shadow:0 3px 16px rgba(0,0,0,0.35);
-  }
-  .banner-overlay .btn{ pointer-events:auto; }
-  @media(max-width:520px){
-    .banner-overlay{ align-items:flex-end; }
-    .banner-overlay-inner{ padding:0 18px clamp(28px,9vw,40px); }
-    .banner-overlay h1{ max-width:13.5ch;font-size:clamp(21px,7vw,30px); }
-    .banner-overlay .btn{ padding:14px 22px;font-size:14.5px; }
-  }
-
   /* ---------- FRANJA DE CONFIANZA ---------- */
   .trust-strip{
     background:var(--ink);color:rgba(255,255,255,0.9);
@@ -1066,15 +1035,6 @@
 <section class="banner-carousel is-empty" id="top" aria-label="Portada">
   <div class="banner-skeleton" id="bannerSkeleton"></div>
   <div class="banner-track" id="bannerTrack"></div>
-  <div class="banner-overlay">
-    <div class="banner-overlay-inner">
-      <h1>Mochilas y accesorios para tu día a día</h1>
-      <a href="#catalogo" class="btn btn-primary">
-        Ver productos
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-      </a>
-    </div>
-  </div>
   <button type="button" class="banner-arrow prev" id="bannerPrev" aria-label="Anterior" style="display:none;">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
   </button>
