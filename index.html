@@ -309,6 +309,14 @@
     .banner-track{ transition:none; }
   }
 
+  /* ---------- DIFUMINACIÓN SOBRE EL CARRUSEL DE PORTADA ----------
+     Solo el degradado oscuro para que las fotos "respiren" mejor junto
+     a las flechas/puntos; no lleva texto ni botón encima. */
+  .banner-overlay{
+    position:absolute;inset:0;z-index:1;pointer-events:none;
+    background:linear-gradient(0deg,rgba(10,9,8,0.55) 0%,rgba(10,9,8,0.18) 42%,rgba(10,9,8,0) 68%);
+  }
+
   /* ---------- FRANJA DE CONFIANZA ---------- */
   .trust-strip{
     background:var(--ink);color:rgba(255,255,255,0.9);
@@ -1035,6 +1043,7 @@
 <section class="banner-carousel is-empty" id="top" aria-label="Portada">
   <div class="banner-skeleton" id="bannerSkeleton"></div>
   <div class="banner-track" id="bannerTrack"></div>
+  <div class="banner-overlay"></div>
   <button type="button" class="banner-arrow prev" id="bannerPrev" aria-label="Anterior" style="display:none;">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
   </button>
