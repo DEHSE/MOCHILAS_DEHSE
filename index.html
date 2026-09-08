@@ -330,8 +330,14 @@
 
   /* ---------- PASOS ---------- */
   .steps{
+    position:relative;
     padding:clamp(72px,10vw,100px) 24px 60px;
-    background:var(--paper);
+    background:linear-gradient(180deg,var(--paper-warm) 0%,var(--paper) 100%);
+  }
+  .steps::before{
+    content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);
+    width:min(600px,80%);height:1px;
+    background:linear-gradient(90deg,transparent,var(--line-strong),transparent);
   }
   .steps-head{max-width:580px;margin-bottom:52px;}
   .tag{
@@ -397,9 +403,18 @@
   .category-pills{
     display:flex;gap:8px;flex-wrap:wrap;margin-bottom:36px;
     background:#fff;border:1.5px solid var(--line-strong);
-    padding:8px;border-radius:999px;
+    padding:8px;border-radius:22px;
     width:fit-content;max-width:100%;
     box-shadow:0 10px 26px -14px rgba(24,22,20,0.28), 0 2px 6px -2px rgba(24,22,20,0.10);
+  }
+  @media(max-width:600px){
+    .category-pills{
+      width:100%;
+      justify-content:flex-start;
+      padding:7px;
+      gap:6px;
+    }
+    .pill{padding:9px 15px;font-size:11.5px;}
   }
   .pill{
     border:none;background:transparent;color:var(--gray);
@@ -447,7 +462,7 @@
   .pill-dropdown-item.active{background:var(--ink);color:#fff;}
   .catalog-head{
     display:flex;justify-content:space-between;align-items:flex-end;
-    margin-bottom:40px;gap:24px;flex-wrap:wrap;
+    margin-bottom:22px;gap:24px;flex-wrap:wrap;
   }
   .catalog-head h2{font-size:clamp(30px,4.2vw,44px);}
   .catalog-head p{color:var(--gray);font-size:15.5px;margin-top:10px;max-width:440px;line-height:1.6;}
@@ -467,9 +482,18 @@
   .card{
     background:#fff;border:1.5px solid var(--line-strong);border-radius:var(--radius);
     overflow:hidden;position:relative;
-    transition:transform .3s var(--ease-out), box-shadow .3s ease, border-color .3s ease;
+    transition:transform .35s var(--ease-out), box-shadow .35s ease, border-color .3s ease;
     display:flex;flex-direction:column;
     box-shadow:0 10px 26px -14px rgba(24,22,20,0.28), 0 2px 6px -2px rgba(24,22,20,0.10);
+    animation:cardEnter .6s var(--ease-out) both;
+    animation-delay:calc(var(--i,0) * 60ms);
+  }
+  @keyframes cardEnter{
+    from{opacity:0;transform:translateY(22px) scale(0.96);}
+    to{opacity:1;transform:translateY(0) scale(1);}
+  }
+  @media(prefers-reduced-motion:reduce){
+    .card{animation:none;}
   }
   .card::before{
     content:'';position:absolute;top:0;left:0;right:0;height:3px;z-index:3;
@@ -477,9 +501,9 @@
     opacity:0;transition:opacity .3s ease;
   }
   .card:hover{
-    transform:translateY(-8px);
-    box-shadow:var(--shadow-lg);
-    border-color:var(--ink-soft);
+    transform:translateY(-10px) scale(1.015);
+    box-shadow:0 26px 50px -18px rgba(255,0,8,0.28), 0 8px 20px -6px rgba(24,22,20,0.18);
+    border-color:var(--red);
   }
   .card:hover::before{opacity:1;}
   .card-img{
@@ -488,14 +512,23 @@
   }
   .card-img img{
     width:100%;height:100%;object-fit:cover;
-    transition:transform .45s var(--ease-out);
+    transition:transform .5s var(--ease-out);
   }
-  .card:hover .card-img img{transform:scale(1.06);}
+  .card:hover .card-img img{transform:scale(1.1);}
   .card-img::after{
     content:'';position:absolute;inset:0;
     background:linear-gradient(180deg,transparent 60%,rgba(24,22,20,0.04));
     pointer-events:none;
   }
+  /* ---------- BRILLO AL PASAR EL MOUSE (guiño al material sintético de las mochilas) ---------- */
+  .card-img .shine{
+    position:absolute;top:0;left:-65%;width:38%;height:100%;z-index:2;
+    background:linear-gradient(115deg,transparent,rgba(255,255,255,0.65),transparent);
+    transform:skewX(-16deg);pointer-events:none;
+    transition:left .7s var(--ease-out);
+  }
+  .card:hover .card-img .shine{left:135%;}
+  @media(prefers-reduced-motion:reduce){.card-img .shine{display:none;}}
   /* ---------- CARRUSEL DE FOTOS AL HACER HOVER / LONG-PRESS ---------- */
   /* Capa adicional que se superpone a la foto principal; empieza invisible
      y solo se activa con el cursor (o el dedo) sobre la tarjeta. No sustituye
@@ -540,7 +573,9 @@
   .card-price{
     font-family:'JetBrains Mono',monospace;font-weight:700;
     font-size:19.5px;color:var(--red);letter-spacing:-0.01em;
+    transition:transform .2s var(--ease-spring);
   }
+  .card:hover .card-price{transform:scale(1.05);}
   .swatch-row{display:flex;gap:7px;margin-top:2px;flex-wrap:wrap;align-items:center;}
   .swatch-dot{
     width:18px;height:18px;border-radius:50%;
@@ -562,6 +597,8 @@
     transform:translateY(-1px);
   }
   .card-cta:disabled{background:#E8E3DC;color:#A39E96;cursor:not-allowed;}
+  .cta-arrow{transition:transform .25s var(--ease-out);}
+  .card-cta:hover:not(:disabled) .cta-arrow{transform:translateX(4px);}
 
   /* ---------- MODAL ---------- */
   .modal-overlay{
@@ -949,7 +986,6 @@
       <div>
         <span class="tag">NUESTROS PRODUCTOS</span>
         <h2>Elige tu próximo favorito</h2>
-        <p>Toca un modelo para ver todas las fotos y elegir tu color.</p>
       </div>
     </div>
     <div class="category-pills" id="categoryPills"></div>
@@ -1728,18 +1764,20 @@ function renderGrid() {
     return;
   }
 
-  visible.forEach(product => {
+  visible.forEach((product, idx) => {
     const total = totalStock(product);
     const tag   = stockTag(total);
     const desc  = getPrecioConDescuento(product);
     const first = product.colors.find(c => c.stock > 0) || product.colors[0];
     const card  = document.createElement("div");
     card.className = "card";
+    card.style.setProperty("--i", idx);
     card.innerHTML = `
       <div class="card-img">
         ${desc.tieneDescuento ? `<span class="discount-badge">-${desc.pct}% OFF</span>` : ""}
         <img src="${first.images[0]}" alt="${product.name} — ${first.name}" loading="lazy">
         ${first.images.length > 1 ? `<img class="card-img-hover" alt=""><img class="card-img-hover" alt="">` : ""}
+        <span class="shine"></span>
       </div>
       <div class="card-body">
         <h3>${product.name}</h3>
@@ -1753,12 +1791,15 @@ function renderGrid() {
           ).join("")}
         </div>
         <button class="card-cta" ${total <= 0 ? "disabled" : ""} data-id="${product.id}">
-          ${total <= 0 ? "Sin stock" : "Ver modelo"}
+          ${total <= 0
+            ? "Sin stock"
+            : `Ver modelo <svg class="cta-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>`}
         </button>
       </div>`;
     activarCarruselHoverCard(card, first.images);
     grid.appendChild(card);
   });
+
 
   grid.querySelectorAll(".card-cta:not([disabled])").forEach(btn => {
     btn.addEventListener("click", () => openDetail(btn.dataset.id));
