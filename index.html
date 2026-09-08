@@ -36,6 +36,10 @@
     --whatsapp-deep:#1EBE5B;
     --radius:20px;
     --radius-sm:14px;
+    --radius-lg:28px;
+    --space-sm:clamp(40px,5vw,56px);
+    --space-md:clamp(56px,7vw,80px);
+    --space-lg:clamp(72px,9vw,100px);
     --shadow-sm:0 4px 14px -4px rgba(24,22,20,0.08);
     --shadow-md:0 12px 32px -12px rgba(24,22,20,0.16);
     --shadow-lg:0 24px 48px -20px rgba(24,22,20,0.22);
@@ -44,7 +48,7 @@
     --ease-spring:cubic-bezier(0.34,1.56,0.64,1);
   }
   *{box-sizing:border-box;}
-  html{scroll-behavior:smooth;}
+  html{scroll-behavior:smooth;scroll-padding-top:84px;}
   body{
     margin:0;
     font-family:'Work Sans',sans-serif;
@@ -77,8 +81,11 @@
     backdrop-filter:blur(16px) saturate(1.4);
     -webkit-backdrop-filter:blur(16px) saturate(1.4);
     border-bottom:1px solid rgba(236,230,222,0.8);
+    box-shadow:0 1px 0 rgba(255,255,255,0.8) inset, 0 0 0 rgba(24,22,20,0);
+    transition:box-shadow .35s var(--ease-out);
+  }
+  header.is-scrolled{
     box-shadow:0 1px 0 rgba(255,255,255,0.8) inset, var(--shadow-sm);
-    transition:box-shadow .25s var(--ease-out);
   }
   .header-inner{
     display:flex;align-items:center;justify-content:space-between;
@@ -283,9 +290,52 @@
     .banner-track{ transition:none; }
   }
 
+  /* ---------- MENSAJE SOBRE EL CARRUSEL DE PORTADA ----------
+     Titular + CTA fijos sobre las fotos administrables, para que el
+     mensaje de marca no dependa 100% de la imagen. No interfiere con
+     los clics del carrusel (flechas, puntos, swipe, link de la foto):
+     solo el botón es clicable, el resto del overlay deja pasar el clic. */
+  .banner-overlay{
+    position:absolute;inset:0;z-index:1;pointer-events:none;
+    display:flex;align-items:flex-end;
+    background:linear-gradient(0deg,rgba(10,9,8,0.62) 0%,rgba(10,9,8,0.28) 42%,rgba(10,9,8,0) 68%);
+  }
+  .banner-overlay-inner{
+    width:100%;padding:0 28px clamp(48px,7vw,72px);
+    max-width:1200px;margin:0 auto;
+  }
+  .banner-overlay h1{
+    font-family:'Anton',sans-serif;
+    font-weight:400;text-transform:uppercase;letter-spacing:0.01em;
+    color:#fff;line-height:1.05;
+    font-size:clamp(26px,4.6vw,50px);
+    max-width:14ch;
+    margin:0 0 20px;
+    text-shadow:0 3px 16px rgba(0,0,0,0.35);
+  }
+  .banner-overlay .btn{ pointer-events:auto; }
+  @media(max-width:520px){
+    .banner-overlay{ align-items:flex-end; }
+    .banner-overlay-inner{ padding:0 18px clamp(28px,9vw,40px); }
+    .banner-overlay h1{ max-width:11ch; }
+    .banner-overlay .btn{ padding:14px 22px;font-size:14.5px; }
+  }
+
+  /* ---------- FRANJA DE CONFIANZA ---------- */
+  .trust-strip{
+    background:var(--ink);color:rgba(255,255,255,0.9);
+  }
+  .trust-strip-inner{
+    display:flex;flex-wrap:wrap;justify-content:center;gap:clamp(18px,4vw,48px);
+    padding:14px 24px;font-size:13px;font-weight:600;letter-spacing:0.01em;
+  }
+  .trust-item{display:flex;align-items:center;gap:9px;color:rgba(255,255,255,0.85);}
+  .trust-item svg{color:var(--gold);flex-shrink:0;}
+  @media(max-width:600px){.trust-strip-inner{gap:12px 20px;font-size:12px;}}
+
   /* ---------- NOSOTROS ---------- */
   .nosotros{
-    padding:clamp(72px,10vw,100px) 24px;
+    padding:var(--space-lg) 24px;
     background:linear-gradient(180deg,#fff 0%,var(--paper-warm) 50%,var(--red-soft) 100%);
     position:relative;
   }
@@ -331,7 +381,7 @@
   /* ---------- PASOS ---------- */
   .steps{
     position:relative;
-    padding:clamp(48px,6vw,68px) 24px 60px;
+    padding:var(--space-sm) 24px var(--space-sm);
     background:linear-gradient(180deg,var(--paper-warm) 0%,var(--paper) 100%);
   }
   .steps::before{
@@ -341,7 +391,7 @@
   }
   .steps-head{max-width:580px;margin-bottom:52px;}
   .tag{
-    color:var(--red);font-weight:700;font-size:12.5px;
+    color:var(--ink-soft);font-weight:700;font-size:12.5px;
     letter-spacing:0.1em;text-transform:uppercase;
     margin-bottom:12px;display:inline-flex;align-items:center;gap:8px;
   }
@@ -389,7 +439,7 @@
 
   /* ---------- CATÁLOGO ---------- */
   .catalog{
-    padding:clamp(64px,8vw,88px) 24px clamp(80px,10vw,110px);
+    padding:var(--space-md) 24px var(--space-lg);
     opacity:0;transform:translateY(24px);
     transition:opacity .7s var(--ease-out), transform .7s var(--ease-out);
     background:
@@ -403,7 +453,7 @@
   .category-pills{
     display:flex;gap:8px;flex-wrap:wrap;margin-bottom:36px;
     background:#fff;border:1.5px solid var(--line-strong);
-    padding:8px;border-radius:22px;
+    padding:8px;border-radius:var(--radius);
     width:fit-content;max-width:100%;
     box-shadow:0 10px 26px -14px rgba(24,22,20,0.28), 0 2px 6px -2px rgba(24,22,20,0.10);
   }
@@ -570,9 +620,10 @@
   }
   .card-price{
     font-family:'JetBrains Mono',monospace;font-weight:700;
-    font-size:19.5px;color:var(--red);letter-spacing:-0.01em;
-    transition:transform .2s var(--ease-spring);
+    font-size:19.5px;color:var(--ink);letter-spacing:-0.01em;
+    transition:transform .2s var(--ease-spring), color .2s ease;
   }
+  .card-price.on-sale{color:var(--red-deep);}
   .card:hover .card-price{transform:scale(1.05);}
   .swatch-row{display:flex;gap:7px;margin-top:2px;flex-wrap:wrap;align-items:center;}
   .swatch-dot{
@@ -611,7 +662,7 @@
   .modal-overlay.open{display:flex;}
   @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
   .modal{
-    background:#fff;border-radius:24px;max-width:940px;width:100%;
+    background:#fff;border-radius:var(--radius-lg);max-width:940px;width:100%;
     max-height:92vh;overflow-y:auto;position:relative;
     box-shadow:var(--shadow-lg), 0 0 0 1px rgba(255,255,255,0.1);
     animation:modalIn .35s var(--ease-out);
@@ -791,6 +842,26 @@
   }
   .wa-hint{font-size:13px;color:var(--gray);display:flex;align-items:center;gap:6px;line-height:1.5;}
 
+  /* ---------- BARRA FIJA DE WHATSAPP EN EL MODAL (solo mobile) ----------
+     En celular, mientras el cliente baja a revisar fotos y colores, el
+     botón de pedido se queda pegado abajo del modal en vez de esperar
+     hasta el final. En desktop no se muestra: el botón normal ya está
+     a la vista sin necesidad de scroll. */
+  .mobile-sticky-cta{ display:none; }
+  @media(max-width:760px){
+    .mobile-sticky-cta{
+      display:block;position:sticky;bottom:0;left:0;right:0;z-index:6;
+      background:#fff;
+      padding:12px 16px calc(12px + env(safe-area-inset-bottom));
+      box-shadow:0 -10px 24px -14px rgba(24,22,20,0.28);
+      border-top:1px solid var(--line);
+    }
+    .mobile-sticky-cta .wa-btn{ width:100%;padding:15px 20px; }
+    /* El botón y la ayuda de más abajo se ocultan en mobile: la barra
+       fija los reemplaza visualmente para no duplicar el CTA. */
+    .detail-info > .wa-btn, .detail-info > .wa-hint{ display:none; }
+  }
+
   /* ---------- WHATSAPP FLOTANTE ---------- */
   .wa-float{
     position:fixed;bottom:28px;right:28px;z-index:60;
@@ -822,7 +893,7 @@
   /* ---------- FOOTER ---------- */
   footer{
     background:linear-gradient(180deg,var(--ink-soft) 0%,var(--ink) 100%);
-    color:#fff;padding:clamp(56px,8vw,72px) 24px 32px;margin-top:0;
+    color:#fff;padding:var(--space-md) 24px 32px;margin-top:0;
     position:relative;
   }
   footer::before{
@@ -896,13 +967,13 @@
     </nav>
     <div class="nav-social">
       <a href="https://www.facebook.com/mochilas.dehse/photos" target="_blank" rel="noopener" aria-label="Facebook de DEHSE">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M22 12.06C22 6.5 17.52 2 12 2S2 6.5 2 12.06c0 5 3.66 9.15 8.44 9.94v-7.03H7.9v-2.91h2.54V9.84c0-2.51 1.49-3.9 3.77-3.9 1.09 0 2.24.2 2.24.2v2.47h-1.26c-1.24 0-1.63.78-1.63 1.57v1.88h2.78l-.45 2.91h-2.33V22c4.78-.79 8.44-4.94 8.44-9.94Z"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><path d="M14.3 21v-6.6h2.2l.35-2.75h-2.55V9.85c0-.8.22-1.34 1.36-1.34h1.45V6.22c-.25-.03-1.1-.1-2.1-.1-2.08 0-3.5 1.27-3.5 3.6v2.13H9.5v2.75h2.2V21"/></svg>
       </a>
       <a href="https://www.instagram.com/mochilasdese/" target="_blank" rel="noopener" aria-label="Instagram de DEHSE">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.4" cy="6.6" r="1.1" fill="currentColor" stroke="none"/></svg>
       </a>
       <a href="https://www.tiktok.com/@mochilas.dehse" target="_blank" rel="noopener" aria-label="TikTok de DEHSE">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 2c.3 2.1 1.6 3.7 3.7 4v3.1c-1.3.1-2.6-.3-3.7-1v6.4c0 3.6-2.9 6.5-6.5 6.5S3.5 18.1 3.5 14.5c0-3.5 2.8-6.4 6.2-6.5v3.3c-1.6.1-2.9 1.4-2.9 3.1 0 1.7 1.4 3.1 3.1 3.1s3.1-1.4 3.1-3.1V2h3.5Z"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 2c.3 2.1 1.6 3.7 3.7 4v3.1c-1.3.1-2.6-.3-3.7-1v6.4c0 3.6-2.9 6.5-6.5 6.5S3.5 18.1 3.5 14.5c0-3.5 2.8-6.4 6.2-6.5v3.3c-1.6.1-2.9 1.4-2.9 3.1 0 1.7 1.4 3.1 3.1 3.1s3.1-1.4 3.1-3.1V2h3.5Z"/></svg>
       </a>
     </div>
     <a class="nav-cta" href="#catalogo">
@@ -924,13 +995,13 @@
     <a class="mobile-menu-cta" href="#catalogo">Ver productos</a>
     <div class="mobile-menu-social">
       <a href="https://www.facebook.com/mochilas.dehse/photos" target="_blank" rel="noopener" aria-label="Facebook de DEHSE">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M22 12.06C22 6.5 17.52 2 12 2S2 6.5 2 12.06c0 5 3.66 9.15 8.44 9.94v-7.03H7.9v-2.91h2.54V9.84c0-2.51 1.49-3.9 3.77-3.9 1.09 0 2.24.2 2.24.2v2.47h-1.26c-1.24 0-1.63.78-1.63 1.57v1.88h2.78l-.45 2.91h-2.33V22c4.78-.79 8.44-4.94 8.44-9.94Z"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><path d="M14.3 21v-6.6h2.2l.35-2.75h-2.55V9.85c0-.8.22-1.34 1.36-1.34h1.45V6.22c-.25-.03-1.1-.1-2.1-.1-2.08 0-3.5 1.27-3.5 3.6v2.13H9.5v2.75h2.2V21"/></svg>
       </a>
       <a href="https://www.instagram.com/mochilasdese/" target="_blank" rel="noopener" aria-label="Instagram de DEHSE">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.4" cy="6.6" r="1.1" fill="currentColor" stroke="none"/></svg>
       </a>
       <a href="https://www.tiktok.com/@mochilas.dehse" target="_blank" rel="noopener" aria-label="TikTok de DEHSE">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 2c.3 2.1 1.6 3.7 3.7 4v3.1c-1.3.1-2.6-.3-3.7-1v6.4c0 3.6-2.9 6.5-6.5 6.5S3.5 18.1 3.5 14.5c0-3.5 2.8-6.4 6.2-6.5v3.3c-1.6.1-2.9 1.4-2.9 3.1 0 1.7 1.4 3.1 3.1 3.1s3.1-1.4 3.1-3.1V2h3.5Z"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 2c.3 2.1 1.6 3.7 3.7 4v3.1c-1.3.1-2.6-.3-3.7-1v6.4c0 3.6-2.9 6.5-6.5 6.5S3.5 18.1 3.5 14.5c0-3.5 2.8-6.4 6.2-6.5v3.3c-1.6.1-2.9 1.4-2.9 3.1 0 1.7 1.4 3.1 3.1 3.1s3.1-1.4 3.1-3.1V2h3.5Z"/></svg>
       </a>
     </div>
   </div>
@@ -940,6 +1011,15 @@
 <section class="banner-carousel is-empty" id="top" aria-label="Portada">
   <div class="banner-skeleton" id="bannerSkeleton"></div>
   <div class="banner-track" id="bannerTrack"></div>
+  <div class="banner-overlay">
+    <div class="banner-overlay-inner">
+      <h1>Mochilas hechas para tu día a día</h1>
+      <a href="#catalogo" class="btn btn-primary">
+        Ver productos
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </a>
+    </div>
+  </div>
   <button type="button" class="banner-arrow prev" id="bannerPrev" aria-label="Anterior" style="display:none;">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
   </button>
@@ -948,6 +1028,24 @@
   </button>
   <div class="banner-dots" id="bannerDots"></div>
 </section>
+
+<!-- ============================= FRANJA DE CONFIANZA ============================= -->
+<div class="trust-strip">
+  <div class="wrap trust-strip-inner">
+    <div class="trust-item">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><path d="M16 8h4l3 3v5h-7V8Z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+      Envío a todo el Perú
+    </div>
+    <div class="trust-item">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+      Pago contra entrega, Yape o Plin
+    </div>
+    <div class="trust-item">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.36 5.07L2 22l5.07-1.33A9.95 9.95 0 0 0 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2Z"/></svg>
+      Atención directa por WhatsApp
+    </div>
+  </div>
+</div>
 
 
 <!-- ============================= CÓMO COMPRAR ============================= -->
@@ -996,6 +1094,12 @@
   <div class="modal">
     <button class="modal-close" id="closeDetail" aria-label="Cerrar">✕</button>
     <div class="detail" id="detailContent"></div>
+    <!-- Barra de WhatsApp fija abajo (solo mobile): mismo botón, siempre a mano
+         mientras el cliente revisa fotos y colores. Solo "espeja" el botón real
+         de más abajo — no repite ni cambia su lógica de precio/mensaje. -->
+    <div class="mobile-sticky-cta" id="mobileStickyCta">
+      <button type="button" class="wa-btn" id="btnWhatsappSticky" disabled>Elige al menos 1 unidad</button>
+    </div>
   </div>
 </div>
 
@@ -1043,6 +1147,21 @@
 
 <!-- ============================= SCRIPTS ============================= -->
 <script>
+/* =============================================================
+   SOMBRA DEL HEADER AL HACER SCROLL
+   Puramente visual: el header nace "plano" sobre la foto del carrusel
+   y solo gana sombra (con transición suave) cuando el usuario baja.
+   ============================================================= */
+(function(){
+  const header = document.querySelector('header');
+  if(!header) return;
+  function actualizarSombra(){
+    header.classList.toggle('is-scrolled', window.scrollY > 8);
+  }
+  window.addEventListener('scroll', actualizarSombra, { passive:true });
+  actualizarSombra();
+})();
+
 /* =============================================================
    MENÚ MÓVIL
    ============================================================= */
@@ -1781,7 +1900,7 @@ function renderGrid() {
         <h3>${product.name}</h3>
         <div class="card-price-row">
           ${desc.tieneDescuento ? `<span class="card-price-old">S/ ${desc.precioOriginal.toFixed(2)}</span>` : ""}
-          <div class="card-price">S/ ${desc.precioFinal.toFixed(2)}</div>
+          <div class="card-price${desc.tieneDescuento ? " on-sale" : ""}">S/ ${desc.precioFinal.toFixed(2)}</div>
         </div>
         <div class="swatch-row">
           ${product.colors.map(c =>
@@ -2094,6 +2213,16 @@ function renderDetail() {
       document.getElementById("detailOverlay").classList.remove("open");
       window.open(waLink(CONFIG.whatsappNumber, mensaje), "_blank");
     });
+  }
+
+  /* ── Barra fija de WhatsApp (mobile): copia el texto/estado del botón
+     real y, al tocarla, simplemente dispara el click del botón real.
+     No recalcula precios ni arma el mensaje por su cuenta. ── */
+  const stickyBtn = document.getElementById("btnWhatsappSticky");
+  if (stickyBtn && btnWa) {
+    stickyBtn.disabled = btnWa.disabled;
+    stickyBtn.innerHTML = btnWa.innerHTML;
+    stickyBtn.onclick = () => { if (!btnWa.disabled) btnWa.click(); };
   }
 }
 
