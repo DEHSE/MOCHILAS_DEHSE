@@ -1,0 +1,33 @@
+name: Supabase keepalive
+
+on:
+  schedule:
+    - cron: "0 14 * * *"   # todos los días a las 14:00 UTC (9:00 a.m. Perú)
+  workflow_dispatch:        # permite ejecutarlo a mano desde la pestaña Actions
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Consulta ligera a Supabase (tabla portada)
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            "${{ secrets.SUPABASE_URL }}/rest/v1/portada?select=id&limit=1" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}")
+          echo "Respuesta de Supabase: $STATUS"
+          if [ "$STATUS" != "200" ]; then
+            echo "Supabase no respondió 200 (puede estar pausado o con error)"
+            exit 1
+          fi
+
+      - name: Consulta ligera a Supabase (tabla del catálogo)
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            "${{ secrets.SUPABASE_URL }}/rest/v1/catalog_json?select=*&limit=1" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}")
+          echo "Respuesta catálogo: $STATUS"
+          if [ "$STATUS" != "200" ]; then
+            exit 1
+          fi
