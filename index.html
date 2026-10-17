@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -296,6 +296,10 @@
     transition:background .2s ease, transform .2s ease;
   }
   .banner-dot.active{ background:#fff;transform:scale(1.25); }
+  /* Solo laptop / PC: foto menos recortada */
+  @media(min-width:901px){
+    .banner-carousel{ aspect-ratio:4/3; }
+  }
   @media(max-width:900px){
     .banner-carousel{ aspect-ratio:4/3; }
   }
