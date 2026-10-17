@@ -1,4 +1,4 @@
-<<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -296,9 +296,19 @@
     transition:background .2s ease, transform .2s ease;
   }
   .banner-dot.active{ background:#fff;transform:scale(1.25); }
-  /* Solo laptop / PC: foto menos recortada */
+  /* Solo laptop / PC: banner más bajo y foto COMPLETA (más "al fondo").
+     La foto se muestra entera con object-fit:contain y los costados se
+     rellenan con la misma foto desenfocada, así no se ve ninguna franja. */
   @media(min-width:901px){
-    .banner-carousel{ aspect-ratio:4/3; }
+    .banner-carousel{ aspect-ratio:21/9; }
+    .banner-slide{ overflow:hidden; background:#e9e7e4; }
+    .banner-slide::before{
+      content:'';position:absolute;inset:-40px;
+      background:var(--bg) center/cover no-repeat;
+      filter:blur(28px) brightness(1.02);
+    }
+    .banner-slide a, .banner-slide .banner-slide-noclick{ position:relative; }
+    .banner-slide img{ object-fit:contain; }
   }
   @media(max-width:900px){
     .banner-carousel{ aspect-ratio:4/3; }
@@ -1341,7 +1351,7 @@ const CONFIG = {
 
     track.innerHTML = banners.map(b => {
       const img = `<img src="${b.image_url}" alt="Promoción" loading="eager" draggable="false">`;
-      return `<div class="banner-slide">${
+      return `<div class="banner-slide" style="--bg:url('${b.image_url}')">${
         b.link_url
           ? `<a href="${b.link_url}" target="_blank" rel="noopener">${img}</a>`
           : `<span class="banner-slide-noclick">${img}</span>`
