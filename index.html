@@ -301,13 +301,8 @@
      rellenan con la misma foto desenfocada, así no se ve ninguna franja. */
   @media(min-width:901px){
     .banner-carousel{ aspect-ratio:21/9; }
-    .banner-slide{ overflow:hidden; background:#e9e7e4; }
-    .banner-slide::before{
-      content:'';position:absolute;inset:-40px;
-      background:var(--bg) center/cover no-repeat;
-      filter:blur(28px) brightness(1.02);
-    }
-    .banner-slide a, .banner-slide .banner-slide-noclick{ position:relative; }
+    .banner-carousel{ background:#fff; }
+    .banner-slide{ overflow:hidden; background:#fff; }
     .banner-slide img{ object-fit:contain; }
   }
   @media(max-width:900px){
@@ -1351,7 +1346,7 @@ const CONFIG = {
 
     track.innerHTML = banners.map(b => {
       const img = `<img src="${b.image_url}" alt="Promoción" loading="eager" draggable="false">`;
-      return `<div class="banner-slide" style="--bg:url('${b.image_url}')">${
+      return `<div class="banner-slide">${
         b.link_url
           ? `<a href="${b.link_url}" target="_blank" rel="noopener">${img}</a>`
           : `<span class="banner-slide-noclick">${img}</span>`
